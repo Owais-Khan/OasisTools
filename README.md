@@ -22,7 +22,7 @@ The script will output two files in the same folder as the /path/to/ (i.e. where
 
 **Note**: The CellEntityIds tag in the mesh correspond to: 0=volumetric mesh, 1=wall mesh, 2=inflow and 3...N for outflows.
 
-**Note**: The VTU file is converted in .xml.gz file using the vmtkMeshWriter script. However, the conda installing of vmtk will give you an error. You will need to update the vmtkMeshWriter script manually to corrct this. Please open the vmtkmeshwriter.py file, go to line 264, and change *file = open(self.OutputFileName,'r')* to *file = open(self.OutputFileName,'rb')*. If you install vmtk using conda, the script will be located at: ```function test() { /Users/[USERNAME]/miniconda3/envs/vmtk/lib/python3.6/site-packages/vmtk/vmtkmeshwriter.py}```
+**Note**: The VTU file is converted in .xml.gz file using the vmtkMeshWriter script. However, the conda installing of vmtk will give you an error. You will need to update the vmtkMeshWriter script manually to corrct this. Please open the vmtkmeshwriter.py file, go to line 264, and change ```file = open(self.OutputFileName,'r')``` to ```file = open(self.OutputFileName,'rb')```. If you install vmtk using conda, the script will be located at: ```/Users/[USERNAME]/miniconda3/envs/vmtk/lib/python3.6/site-packages/vmtk/vmtkmeshwriter.py```
 
 
  
