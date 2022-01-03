@@ -1,3 +1,7 @@
+#This script was written by Owais Khan on January 3, 2022 
+#Cardiovascular Imaging, Modeling and Biomechanics Lab (CIMBL)
+#Ryerson University, Canada
+
 import sys
 import os
 from glob import glob
@@ -6,6 +10,7 @@ import numpy as np
 import vtk
 import argparse
 from utilities import *
+from vmtk import vtkvmtk, vmtkscripts
 
 class OasisMeshWriterForSimVascular():
 	def __init__(self,Args):
@@ -89,11 +94,25 @@ class OasisMeshWriterForSimVascular():
 		MeshVTK.GetPointData().RemoveArray("GlobalNodeID")
 
 		#Write the Mesh File in VTK and XML format
-		WriteVTUFile(self.Args.InputFolder+".vtu",MeshVTK)
+		print ("--- Writing the file in VTU format: %s"%self.Args.InputFolder[0:-1]+".vtu")
+		WriteVTUFile(self.Args.InputFolder[0:-1]+".vtu",MeshVTK)
+
+		#Write the Mesh in xml format
+		print ("--- Writing the file in XML format: %s"%self.Args.InputFolder[0:-1]+".xml")
+		self.XMLMeshWriter(MeshVTK,self.Args.InputFolder[0:-1]+".xml")
+
+	def XMLMeshWriter(self,Mesh,OutputFileName):
+		MeshWriter=vmtkscripts.vmtkMeshWriter()
+		MeshWriter.Mesh=Mesh
+		MeshWriter.Format="dolfin"
+		MeshWriter.GuessFormat=0
+		MeshWriter.OutputFileName=OutputFileName
+		MeshWriter.Compressed=1
+		MeshWriter.Execute()
 
 if __name__=="__main__":
         #Description
-	parser = argparse.ArgumentParser(description="This script will take a mesh-complete folder from SimVascular and write a dolfin mesh file. The CellEntityIds 0 is for volume, 1 is for wall, 2 is for inlet and remaining is for outlets.")
+	parser = argparse.ArgumentParser(description="This script will take a mesh-complete folder from SimVascular and write a dolfin mesh file. The CellEntityIds 0 is for the volume (Tetrahedron), 1 for the mesh wall, 2 for inlet, and 3....N for outlets.")
 	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest="InputFolder",help="The path to mesh-complete folder from SimVascular")
         
 	#Output Filename 
