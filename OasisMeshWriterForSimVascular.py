@@ -1,7 +1,7 @@
 #This script was written by Owais Khan on January 3, 2022 
 #Cardiovascular Imaging, Modeling and Biomechanics Lab (CIMBL)
 #Ryerson University, Canada
-
+import json
 import sys
 import os
 from glob import glob
@@ -15,6 +15,10 @@ from vmtk import vtkvmtk, vmtkscripts
 class OasisMeshWriterForSimVascular():
 	def __init__(self,Args):
 		self.Args=Args
+		if self.Args.OutputFileName is None:
+			self.Args.OutputFileName=self.Args.InputFolder.replace("/","")
+
+		self.IDs={"check_surface": True}
 
 	def Main(self):
 		#Lead the Vtu file from mesh-complete folder
@@ -43,11 +47,40 @@ class OasisMeshWriterForSimVascular():
 		BoundaryNodeIds=[]
 		BoundaryEntityIds=[]
 		counter=1
+
+
+		self.IDs["inlet_id"]=[1]
+		self.IDs["outlet_ids"]=[]
+		OutletSurfaceArea=[]
 		for BoundaryFile_ in BoundaryFiles:
+			print ("------ Looping over: %s"%BoundaryFile_)
+			
 			BoundarySurface_=ReadVTPFile(BoundaryFile_)
 			BoundaryNodeIds+=[BoundarySurface_.GetPointData().GetArray("GlobalNodeID").GetValue(i) for i in range(BoundarySurface_.GetNumberOfPoints())]
 			BoundaryEntityIds+=[counter]*BoundarySurface_.GetNumberOfPoints()
-			counter+=1 
+
+			#Add the centroid and surface area of the boundary file to the self.IDs dictionary
+			SurfaceArea_=GetSurfaceArea(BoundarySurface_)
+			Centroid_=GetCentroid(BoundarySurface_)
+			if counter>=2:
+				self.IDs[BoundaryFile_.split("/")[-1].replace(".vtp","")]=Centroid_
+				self.IDs[BoundaryFile_.split("/")[-1].replace(".vtp","_area")]=SurfaceArea_
+			
+			#All of the outlets
+			if counter>2: 
+				self.IDs["outlet_ids"].append(counter-1)
+				OutletSurfaceArea.append(SurfaceArea_)				
+			counter+=1
+			
+		self.IDs["mean_flow_rate"]=1.00
+
+		AreaRatio=np.array(OutletSurfaceArea)/np.sum(OutletSurfaceArea)
+		self.IDs["area_ratio"]=np.ndarray.tolist(AreaRatio)
+		
+		print ("--- Writing the Boundary IDS to: %s"%self.Args.OutputFileName+"_info.json")
+		with open(self.Args.OutputFileName+"_info.json", 'w') as convert_file:
+			convert_file.write(json.dumps(self.IDs))
+
 
 		BoundaryNodeIds=np.array(BoundaryNodeIds)
 		BoundaryEntityIds=np.array(BoundaryEntityIds)
@@ -94,12 +127,12 @@ class OasisMeshWriterForSimVascular():
 		MeshVTK.GetPointData().RemoveArray("GlobalNodeID")
 
 		#Write the Mesh File in VTK and XML format
-		print ("--- Writing the file in VTU format: %s"%self.Args.InputFolder[0:-1]+".vtu")
-		WriteVTUFile(self.Args.InputFolder[0:-1]+".vtu",MeshVTK)
+		print ("--- Writing the file in VTU format: %s"%self.Args.OutputFileName+".vtu")
+		WriteVTUFile(self.Args.OutputFileName+".vtu",MeshVTK)
 
 		#Write the Mesh in xml format
 		print ("--- Writing the file in XML format: %s"%self.Args.InputFolder[0:-1]+".xml")
-		self.XMLMeshWriter(MeshVTK,self.Args.InputFolder[0:-1]+".xml")
+		self.XMLMeshWriter(MeshVTK,self.Args.OutputFileName+".xml")
 
 	def XMLMeshWriter(self,Mesh,OutputFileName):
 		MeshWriter=vmtkscripts.vmtkMeshWriter()
@@ -110,13 +143,15 @@ class OasisMeshWriterForSimVascular():
 		MeshWriter.Compressed=1
 		MeshWriter.Execute()
 
+
+
 if __name__=="__main__":
         #Description
 	parser = argparse.ArgumentParser(description="This script will take a mesh-complete folder from SimVascular and write a dolfin mesh file. The CellEntityIds 0 is for the volume (Tetrahedron), 1 for the mesh wall, 2 for inlet, and 3....N for outlets.")
 	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest="InputFolder",help="The path to mesh-complete folder from SimVascular")
         
 	#Output Filename 
-	parser.add_argument('-OutputFile', '--OutputFile', type=str, required=False, dest="OutputFile",help="The output file in which to store the dolfin mesh.")
+	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output file in which to store the dolfin mesh.")
 
 	args=parser.parse_args()
 	OasisMeshWriterForSimVascular(args).Main()
