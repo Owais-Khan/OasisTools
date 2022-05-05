@@ -132,6 +132,7 @@ class OasisMeshWriterForSimVascular():
 
 		#Write the Mesh in xml format
 		print ("--- Writing the file in XML format: %s"%self.Args.InputFolder[0:-1]+".xml")
+		os.system("rm %s.xml.gz"%self.Args.OutputFileName)
 		self.XMLMeshWriter(MeshVTK,self.Args.OutputFileName+".xml")
 
 	def XMLMeshWriter(self,Mesh,OutputFileName):
