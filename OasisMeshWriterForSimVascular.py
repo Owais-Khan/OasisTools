@@ -18,6 +18,10 @@ class OasisMeshWriterForSimVascular():
 		if self.Args.OutputFileName is None:
 			self.Args.OutputFileName=self.Args.InputFolder.replace("/","")
 
+		os.system("rm %s.xml.gz"%self.Args.OutputFileName)
+		os.system("rm %s.vtu"%self.Args.OutputFileName)
+		os.system("rm %s_info.json"%self.Args.OutputFileName)
+
 		self.IDs={"check_surface": True}
 
 	def Main(self):
@@ -132,8 +136,8 @@ class OasisMeshWriterForSimVascular():
 
 		#Write the Mesh in xml format
 		print ("--- Writing the file in XML format: %s"%self.Args.InputFolder[0:-1]+".xml")
-		os.system("rm %s.xml.gz"%self.Args.OutputFileName)
-		self.XMLMeshWriter(MeshVTK,self.Args.OutputFileName+".xml")
+		os.system("vmtkmeshwriter -ifile %s.vtu -ofile %s.xml -entityidsarray CellEntityIds"%(self.Args.OutputFileName,self.Args.OutputFileName))
+		#self.XMLMeshWriter(MeshVTK,self.Args.OutputFileName+".xml")
 
 	def XMLMeshWriter(self,Mesh,OutputFileName):
 		MeshWriter=vmtkscripts.vmtkMeshWriter()
