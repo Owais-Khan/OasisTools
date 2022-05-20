@@ -202,13 +202,6 @@ def velocity_tentative_hook(mesh, mesh_path, id_in, id_out, ui, A, u_ab, u, v, q
 #    ids = id_in[:]+id_out[:]
     backflow_beta = 0.2
 
-    for i, ind in enumerate(id_in):
-        ds = Measure("ds", domain=mesh, subdomain_data=boundary)
-        n = FacetNormal(mesh)
-        K = assemble(u_dot_n(u_ab, n) * dot(u, v) * ds(ind))
-        A.axpy(-backflow_beta * 0.5, K, True) 
-        b[ui].axpy(backflow_beta * 0.5, K * x_1[ui]) 
- 
     for i, ind in enumerate(id_out):
         ds = Measure("ds", domain=mesh, subdomain_data=boundary)
         n = FacetNormal(mesh)
