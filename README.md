@@ -14,8 +14,11 @@ SimVascular software (see simvascular.github.io) can be used to segment and gene
 The following script can be used to produce a VTU file that can be visualized in Paraview and .xml.gz file that can be read into Oasis CFD solver. Here is how to use the script.
 
 ```console
-foo@bar:~$ python OasisMeshWriterForSimVascular.py -InputFolder /path/to/mesh-complete/
+foo@bar:~$ python OasisMeshWriterForSimVascular.py -InputFolder /path/to/mesh-complete/ 
 ```
+You may define the following parameters:
+1. -BackFlowFactor: This controls the amount of backflow stabalization to add to the solver for cases when there is bulk/local flow reversal. Default value is 0. In case of flow reversal, a value of 0.2 is adequate.
+
 The script will output two files in the same folder as the /path/to/ (i.e. where mesh-complete folder is located). 
 1. mesh-complete.vtu: A volumetric mesh file that can be read into paraview along with all of the boundary ids.
 2. mesh-complete.xml.gz: A volumetric msh file that can be read into Oasis. Please refer to VaMPY documentation (https://github.com/KVSlab/VaMPy) on how to conduct simulations with the Oasis CFD solver.
