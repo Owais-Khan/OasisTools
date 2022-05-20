@@ -80,7 +80,9 @@ class OasisMeshWriterForSimVascular():
 
 		AreaRatio=np.array(OutletSurfaceArea)/np.sum(OutletSurfaceArea)
 		self.IDs["area_ratio"]=np.ndarray.tolist(AreaRatio)
-		
+
+		self.IDs["BackFlowFactor"]=self.Args.BackFlowFactor	
+	
 		print ("--- Writing the Boundary IDS to: %s"%self.Args.OutputFileName+"_info.json")
 		with open(self.Args.OutputFileName+"_info.json", 'w') as convert_file:
 			convert_file.write(json.dumps(self.IDs))
@@ -154,6 +156,8 @@ if __name__=="__main__":
         #Description
 	parser = argparse.ArgumentParser(description="This script will take a mesh-complete folder from SimVascular and write a dolfin mesh file. The CellEntityIds 0 is for the volume (Tetrahedron), 1 for the mesh wall, 2 for inlet, and 3....N for outlets.")
 	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest="InputFolder",help="The path to mesh-complete folder from SimVascular")
+
+	parser.add_argument('-BackFlowFactor', '--BackFlowFactor', type=float, required=False, default=0., dest="BackFlowFactor",help="Backflow stabalization factor to avoid the simulation from diverging in case of flow reversal. Default is 0, meaning no stabalization. A value of 0.2 is typically sufficient.")
         
 	#Output Filename 
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output file in which to store the dolfin mesh.")
