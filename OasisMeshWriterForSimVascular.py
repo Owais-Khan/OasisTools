@@ -1,6 +1,7 @@
 #This script was written by Owais Khan on January 3, 2022 
 #Cardiovascular Imaging, Modeling and Biomechanics Lab (CIMBL)
 #Ryerson University, Canada
+
 import json
 import sys
 import os
@@ -9,14 +10,14 @@ from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import numpy as np
 import vtk
 import argparse
-from utilities import *
+from Utilities import *
 from vmtk import vtkvmtk, vmtkscripts
 
 class OasisMeshWriterForSimVascular():
 	def __init__(self,Args):
 		self.Args=Args
 		if self.Args.OutputFileName is None:
-			self.Args.OutputFileName=self.Args.InputFolder.replace("/","")
+			self.Args.OutputFileName=self.Args.InputFolder
 
 		os.system("rm %s.xml.gz"%self.Args.OutputFileName)
 		os.system("rm %s.vtu"%self.Args.OutputFileName)
@@ -25,10 +26,22 @@ class OasisMeshWriterForSimVascular():
 		self.IDs={"check_surface": True}
 
 	def Main(self):
-		#Lead the Vtu file from mesh-complete folder
+		if self.Args.ScalingFactor is not None:
+			#Get All of the files in the mesh complete folder
+			print ("--- Scaling the mesh from cm to mm since SimVascular is usually in cm")
+			print ("--- Using the Scaling Factor: %.02f"%self.Args.ScalingFactor)
+			AllFilesVTP=glob("%s/*.vtp"%self.Args.InputFolder)+glob("%s/mesh-surfaces/*.vtp"%self.Args.InputFolder)
+			for File_ in AllFilesVTP:
+				print ("------ Scaling %s"%(File_))
+				os.system("vmtksurfacescaling -ifile  %s -ofile %s -scale %f"%(File_,File_,self.Args.ScalingFactor))
+			os.system("vmtkmeshscaling -ifile %s/mesh-complete.mesh.vtu -ofile %s/mesh-complete.mesh.vtu -scale %f"%(self.Args.InputFolder,self.Args.InputFolder,self.Args.ScalingFactor))
+		else:
+			print ("------------- NOT SCALING THE MESH-COMPLETE FOLDER --------------")
+			print ("---------- MAKE SURE THE MESH-COMPLETE is already in mm ---------")
+	
+                #Lead the Vtu file from mesh-complete folder
 		MeshVTK=ReadVTUFile(self.Args.InputFolder+"/mesh-complete.mesh.vtu")
-		#SurfaceVTK=ReadVTPFile(self.Args.InputFolder+"/mesh-complete.exterior.vtp")		
-
+ 
 		#Read all of the inlet and outlet ids and remove wall files
 		BoundaryFilesAll=sorted(glob(self.Args.InputFolder+"/mesh-surfaces/*.vtp"))
 		BoundaryFiles=[]
@@ -46,6 +59,10 @@ class OasisMeshWriterForSimVascular():
 		for BoundaryFile_ in BoundaryFilesAll:
 			if BoundaryFile_.find("wall")<0:
 				BoundaryFiles.append(BoundaryFile_)
+
+
+
+
 
 		#Loop over all of the surface files and read the surface node ids
 		BoundaryNodeIds=[]
@@ -136,10 +153,13 @@ class OasisMeshWriterForSimVascular():
 		print ("--- Writing the file in VTU format: %s"%self.Args.OutputFileName+".vtu")
 		WriteVTUFile(self.Args.OutputFileName+".vtu",MeshVTK)
 
+		#print ("--- Scaling the mesh from cm to mm since SimVascular is usually in cm")
+		#print ("--- Using the Scaling Factor: %.02f"%self.Args.ScalingFactor)
+		#os.system("vmtkmeshscaling -ifile %s -ofile %s -scale %f"%(self.Args.OutputFileName+".vtu",self.Args.OutputFileName+".vtu",self.Args.ScalingFactor))
+
 		#Write the Mesh in xml format
-		print ("--- Writing the file in XML format: %s"%self.Args.InputFolder[0:-1]+".xml")
+		print ("--- Writing the file in XML format: %s"%self.Args.InputFolder+".xml")
 		os.system("vmtkmeshwriter -ifile %s.vtu -ofile %s.xml -entityidsarray CellEntityIds"%(self.Args.OutputFileName,self.Args.OutputFileName))
-		#self.XMLMeshWriter(MeshVTK,self.Args.OutputFileName+".xml")
 
 	def XMLMeshWriter(self,Mesh,OutputFileName):
 		MeshWriter=vmtkscripts.vmtkMeshWriter()
@@ -156,8 +176,12 @@ if __name__=="__main__":
         #Description
 	parser = argparse.ArgumentParser(description="This script will take a mesh-complete folder from SimVascular and write a dolfin mesh file. The CellEntityIds 0 is for the volume (Tetrahedron), 1 for the mesh wall, 2 for inlet, and 3....N for outlets.")
 	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest="InputFolder",help="The path to mesh-complete folder from SimVascular")
+<<<<<<< HEAD
+	parser.add_argument('-ScalingFactor', '--ScalingFactor', type=int, required=False,help="Scale the mesh from cm to mm.")
+=======
 
 	parser.add_argument('-BackFlowFactor', '--BackFlowFactor', type=float, required=False, default=0., dest="BackFlowFactor",help="Backflow stabalization factor to avoid the simulation from diverging in case of flow reversal. Default is 0, meaning no stabalization. A value of 0.2 is typically sufficient.")
+>>>>>>> dd248a2e0287442bcd3145eab46d314d44cf8175
         
 	#Output Filename 
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output file in which to store the dolfin mesh.")

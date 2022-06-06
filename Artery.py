@@ -199,7 +199,6 @@ def pre_solve_hook(mesh, V, Q, newfolder, mesh_path, restart_folder, velocity_de
 #Backflow stabilization 
 def velocity_tentative_hook(mesh, mesh_path, id_in, id_out, ui, A, u_ab, u, v, q_1, b, x_1, boundary, **NS_namespace):
 
-#    ids = id_in[:]+id_out[:]
     backflow_beta = 0.2
 
     for i, ind in enumerate(id_out):
