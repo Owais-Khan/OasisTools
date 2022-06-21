@@ -1,8 +1,16 @@
 # OasisTools
 The scripts in this repository provide useful tools to facilitate CFD simulations using the Oasis solver (https://github.com/mikaem/Oasis). You will need the following libraries to use these tools:
 1. vtk
-2. vmtk (see www.vmtk.org)
-3. numpy
+2. Fenics
+
+If you have a mac, I recommend installing VTK first and then Fenics using the following commands:
+
+```console
+foo@bar:~$ conda create -n Fenics
+foo@bar:~$ conda activate Fenics
+foo@bar:~$ conda install vtk
+foo@bar:~$ conda install -c conda-forge fenics
+```
 
 To get help for any script, please type:
 ```console
