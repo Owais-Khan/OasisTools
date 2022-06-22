@@ -16,7 +16,7 @@ To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
 ```
-## Converting SimVascular Mesh to Oasis readable Mesh
+## Convert SimVascular Mesh to Oasis readable Mesh
 SimVascular software (see simvascular.github.io) can be used to segment and generate volumetric meshes. SimVascular produces a folder called "mesh-complete", which contains the volumetric, wall and cap meshes. Prior to generating the mesh in SimVascular, please ensure that the inflow cap is labelled as "inflow". 
 
 The following script can be used to produce a VTU file that can be visualized in Paraview and .xml.gz file that can be read into Oasis CFD solver. Here is how to use the script.
@@ -33,7 +33,17 @@ The script will output two files in the same folder as the /path/to/ (i.e. where
 
 **Note**: The VTU file is converted in .xml.gz file using the vmtkMeshWriter script. However, the conda installing of vmtk will give you an error. You will need to update the vmtkMeshWriter script manually to corrct this. Please open the vmtkmeshwriter.py file, go to line 264, and change ```file = open(self.OutputFileName,'r')``` to ```file = open(self.OutputFileName,'rb')```. If you install vmtk using conda, the script will be located at: ```/Users/[USERNAME]/miniconda3/envs/vmtk/lib/python3.6/site-packages/vmtk/vmtkmeshwriter.py```
 
+## Convert SimVascular velocity to Oasis Readable velocity
+The following script can be used to convert VTK format velocity field from SimVascular to .h5 format velocity field for Oasis. Converting SimVascular velocity field in .h5 format allows us to utilize FEniCS library for computing post-processing quantities (available in VaMPy see https://vampy.readthedocs.io/en/latest/).
 
- 
-
+First convert the SimVascular mesh to FEniCS readable mesh. You can do this using any of the velocity output files from simvascular or the mesh used in the simvascular simulation. You will need to use VMTK to do this. For example:
+```console
+foo@bar:~$ vmtkmeshwriter -ifile mesh-complete.mesh.vtu -ofile mesh.xml"
+```
+Next run the script to convert SimVascular results to Oasis results
+```console
+foo@bar:~$ python OasisConvertSimVascularResults.py -InputFolder /path/to/Simvascular/results -MeshFileName /path/to/mesh.xml.gz
+```
+Optional arguments include:
+* -OutputFolder : Path to the output folder to store the .h5 results (Oasis format).
 

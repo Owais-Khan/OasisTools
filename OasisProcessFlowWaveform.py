@@ -31,14 +31,15 @@ class ProcessFlowWavefrom:
 		X_new,Y_new=self.SplineFitting(X,Y)
 
 
-		if min(Y)<0:
+		if self.Args.AllPositive:
 			print ("The is a region of flow reversal. The minimum flow rate is %.03f"%min(Y))
 			print ("We will shift the flow waveform up to ensure that the Oasis solver doesn't diverge")
 			print ("However, the mean flow rate will remain the same.")
 			YMean=np.average(Y)
 			print ("The mean flow rate of the original waveform is %.03f"%YMean)
 			YMin=abs(min(Y_new))
-			Y_new=(Y_new+YMin)*(1/(1+YMin/YMean))
+			Y_new=(Y_new+YMin)+2#*(1/(1+YMin/YMean))
+			Y_new=Y_new*(YMean/np.mean(Y_new))
 			print ("The mean flow rate of the shifted waveform is %.03f"%np.average(Y_new))
 
 
@@ -69,7 +70,7 @@ class ProcessFlowWavefrom:
 		for i in range(len(X_new)):
 			if abs(Y_filtered[i]) == 0:
 				Y_filtered[i] = abs(Y_filtered[i])
-			outfile.write("%.05f %.05f\n"%(X_new[i]/1000,Reverse_*Y_filtered[i]))
+			outfile.write("%.05f %.05f\n"%(X_new[i],Reverse_*Y_filtered[i]))
 		outfile.close()
 
 		"""plt.plot(X_new2,Y_new2)#,'-k',label="Original")
@@ -98,9 +99,6 @@ class ProcessFlowWavefrom:
 
 				
 
-
-
-
 if __name__=="__main__":
         #Description
 	parser = argparse.ArgumentParser(description="This script will apply four transform to the time vs velocity/flow rate series and generate a smoothed, periodic flow waveform.")
@@ -116,6 +114,8 @@ if __name__=="__main__":
 	
 	#The output file name
 	parser.add_argument('-OutputFile', '--OutputFile', type=str, required=False, dest="OutputFile",help="The output file to store the processed flow waveform.")
+	
+	parser.add_argument('-AllPositive', '--AllPositive', type=bool, required=False, default=False, dest="AllPositive",help="The flag will ensure that the flow waveform is positive. It will shift it up and dampen it to ensure no negative flux occurs")
 
 	#Reverse or Forward
 	parser.add_argument('-Reverse', '--Reverse', type=bool, required=False, default=False, dest="Reverse",help="True=Flow Waveform is negative. False=Flow waveform is positive.")
