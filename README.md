@@ -36,11 +36,11 @@ The script will output two files in the same folder as the /path/to/ (i.e. where
 ## Convert SimVascular velocity to Oasis Readable velocity
 The following script can be used to convert VTK format velocity field from SimVascular to .h5 format velocity field for Oasis. Converting SimVascular velocity field in .h5 format allows us to utilize FEniCS library for computing post-processing quantities (available in VaMPy see https://vampy.readthedocs.io/en/latest/).
 
-First convert the SimVascular mesh to FEniCS readable mesh. You can do this using any of the velocity output files from simvascular or the mesh used in the simvascular simulation. You will need to use VMTK to do this. For example:
+First, convert the SimVascular mesh to FEniCS readable mesh. You can do this using any of the velocity output files from simvascular or the mesh used in the simvascular simulation. You will need to use VMTK to do this. For example:
 ```console
 foo@bar:~$ vmtkmeshwriter -ifile mesh-complete.mesh.vtu -ofile mesh.xml"
 ```
-Next run the script to convert SimVascular results to Oasis results
+Next, run the script to convert SimVascular results to Oasis results
 ```console
 foo@bar:~$ python OasisConvertSimVascularResults.py -InputFolder /path/to/Simvascular/results -MeshFileName /path/to/mesh.xml.gz
 ```
