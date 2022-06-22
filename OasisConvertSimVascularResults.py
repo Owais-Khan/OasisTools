@@ -25,8 +25,11 @@ class OasisConvertSimVascularResults():
 		print ("--- Found %d files in %s"%(len(FileNames),self.Args.InputFolder))
 
 		#Load the dolfin mesh
+		print ("--- Mesh loading from %s"%self.Args.MeshFileName)
 		Mesh_=Mesh(self.Args.MeshFileName)
-		print ("--- Mesh loaded from %s"%self.Args.MeshFileName)
+
+		print ("--- Writing mesh to: %s"%self.Args.OutputFolder)
+		File("%s/mesh.xml.gz"%self.Args.OutputFolder)<<Mesh_
 
 		#Create a function space
 		print ("--- Creating function spaces")
