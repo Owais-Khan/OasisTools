@@ -1,17 +1,14 @@
 import sys
 import os
 from glob import glob
-from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 from scipy.fftpack import fftfreq,fft,ifft
 import numpy as np
-import vtk
 import argparse
-from utilities import *
 from dolfin import *
-from ufl.tensors import ListTensor
+parameters["reorder_dofs_serial"] = False
 
 class OasisFrequencyAnalysis():
-        def __init__(self,Args):
+	def __init__(self,Args):
 		self.Args=Args
 		if self.Args.OutputFolder is None:
 			os.system("mkdir %s/../Results_OasisFormat"%self.Args.InputFolder)
@@ -25,7 +22,7 @@ class OasisFrequencyAnalysis():
 			mesh_path = path.join(folder, "mesh.h5")
 			mesh = Mesh()
 			with HDF5File(MPI.comm_world, mesh_path, "r") as mesh_file:
-			mesh_file.read(mesh, "mesh", False)
+				mesh_file.read(mesh, "mesh", False)
     
 		elif len(glob(folder+"/mesh.xml.gz"))==1:
 			mesh_path = path.join(folder,"mesh.xml.gz")
@@ -104,28 +101,30 @@ class OasisFrequencyAnalysis():
 		File("%s/TKE.pvd"%self.Args.OutputFolder)<<Data_fs
 
 
-        def filter_TKE(self,U):
+        
+	def filter_TKE(self,U):
                 #For FKE
-                U_fft       = fft(U)
-                U_cut_fft   = U_fft.copy()
-                U_cut_fft[(self.W<self.Args.CutoffFrequency)]=0
-                U_ifft      =ifft(U_cut_fft)
-                return U_ifft
+		U_fft       = fft(U)
+		U_cut_fft   = U_fft.copy()
+		U_cut_fft[(self.W<self.Args.CutoffFrequency)]=0
+		U_ifft      =ifft(U_cut_fft)
+		return U_ifft
 
-        def filter_SPI(self,U):
+        
+	def filter_SPI(self,U):
                 #for HI
-                U_fft       = fft(U-np.mean(U))
+		U_fft       = fft(U-np.mean(U))
                 #Cut off the upper frequency to 25Hz
-                U_fft_25Hz   = U_fft.copy()
-                U_fft_25Hz[(self.W<self.Args.CutoffFrequency)]=0
+		U_fft_25Hz   = U_fft.copy()
+		U_fft_25Hz[(self.W<self.Args.CutoffFrequency)]=0
                 #Cut off the lower frequency to 0Hz
-                U_fft_0Hz =U_fft.copy()
-                U_fft_0Hz[(self.W<0)]=0
+		U_fft_0Hz =U_fft.copy()
+		U_fft_0Hz[(self.W<0)]=0
                 #Compute the absolute value
-                Power_25Hz    =np.sum ( np.power( np.absolute(U_fft_25Hz),2))
-                Power_0Hz     =np.sum ( np.power( np.absolute(U_fft_0Hz) ,2))
-                if Power_0Hz<1e-5: return 0
-                else:              return Power_25Hz/Power_0Hz
+		Power_25Hz    =np.sum ( np.power( np.absolute(U_fft_25Hz),2))
+		Power_0Hz     =np.sum ( np.power( np.absolute(U_fft_0Hz) ,2))
+		if Power_0Hz<1e-5: return 0
+		else:              return Power_25Hz/Power_0Hz
 
 
 if __name__=="__main__":
@@ -135,6 +134,7 @@ if __name__=="__main__":
 	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, dest="OutputFolder",help="The folder to store the results.")
 	parser.add_argument('-Period', '--Period', type=float, required=True, dest="Period",help="The duration of the cardiac cycle in seconds.")
 	parser.add_argument('-CutoffFrequency', '--CutoffFrequency', type=int, required=False, default=25, dest="CutoffFrequency",help="The cut-off frequency to compute frequency-based biomarkers.")
+	parser.add_argument('-velocity_degree', '--velocity_degree', type=int, required=False, default=1, dest="velocity_degree",help="The velocity degree for the function space")
 	args=parser.parse_args()
 	OasisFrequencyAnalysis(args).Main()
 
