@@ -254,6 +254,21 @@ def compute_flow_and_simulation_metrics(folder, nu, dt, velocity_degree):
     turbulent_kinetic_energy_avg.vector()[:] = turbulent_kinetic_energy_avg.vector()[:] / N
     turbulent_dissipation_avg.vector()[:] = turbulent_dissipation_avg.vector()[:] / N
 
+    #Write in VTU Format
+    File(path.join(folder,"CFL.pvd"))<<CFL_avg
+    File(path.join(folder,"l_plus.pvd"))<<l_plus_avg
+    File(path.join(folder,"t_plus.pvd"))<<t_plus_avg
+    File(path.join(folder,"length_scale.pvd"))<<length_scale_avg
+    File(path.join(folder,"time_scale.pvd"))<<time_scale_avg
+    File(path.join(folder,"velocity_scale.pvd"))<<velocity_scale_avg
+    File(path.join(folder,"dissipation.pvd"))<<dissipation_avg
+    File(path.join(folder,"kinetic_energy.pvd"))<<kinetic_energy_avg
+    File(path.join(folder,"turbulent_kinetic_energy.pvd"))<<turbulent_kinetic_energy_avg
+    File(path.join(folder,"turbulent_dissipation.pvd"))<<turbulent_dissipation_avg
+    File(path.join(folder,"characteristic_edge_length.pvd"))<<characteristic_edge_length
+    File(path.join(folder,"strain.pvd"))<<strain_avg
+    File(path.join(folder,"u_mean.pvd"))<<u_mean
+	
     # Store average data
     metrics["CFL"].write_checkpoint(CFL_avg, "CFL")
     metrics["l_plus"].write_checkpoint(l_plus_avg, "l_plus")
