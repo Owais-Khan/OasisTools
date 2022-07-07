@@ -219,6 +219,14 @@ def compute_hemodynamic_indices(case_path, nu, rho, dt, velocity_degree):
 
     tawss = XDMFFile(MPI.comm_world, tawss_path)
     twssg = XDMFFile(MPI.comm_world, twssg_path)
+    
+    #Write in VTU Format
+    File(str(folder)+"/TAWSS.pvd")<<TAWSS
+    File(str(folder)+"/TWSSG.pvd")<<TWSSG
+    File(str(folder)+"/WSS.pvd")<<WSS_mean
+    File(str(folder)+"/RRT.pvd")<<RRT
+    File(str(folder)+"/OSI.pvd")<<OSI
+    File(str(folder)+"/ECAP.pvd")<<ECAP
 
     for f in [tawss, twssg]:
         f.parameters["flush_output"] = True
