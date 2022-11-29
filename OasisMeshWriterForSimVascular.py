@@ -174,7 +174,7 @@ if __name__=="__main__":
         #Description
 	parser = argparse.ArgumentParser(description="This script will take a mesh-complete folder from SimVascular and write a dolfin mesh file. The CellEntityIds 0 is for the volume (Tetrahedron), 1 for the mesh wall, 2 for inlet, and 3....N for outlets.")
 	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest="InputFolder",help="The path to mesh-complete folder from SimVascular")
-<<<<<<< HEAD
+	
 	parser.add_argument('-ScalingFactor', '--ScalingFactor', type=int, required=False,help="Scale the mesh from cm to mm.")
 
 	#Output Filename 
