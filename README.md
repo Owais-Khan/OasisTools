@@ -16,6 +16,22 @@ To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
 ```
+### Scaling of Oasis CFD Solver on Niagara Computing Cluster
+*Oasis* is a high-performance CFD solver that has shown accuracy on par with state-of-the-art DNS solvers (e.g., NEK5000). The solver is minimally dissipative and energy preserving, ideal for high-resolutions simulations of transitional or turbulent blood flows in the cardiovascular system.
+
+Below, we have demonstrated the scaling of *Oasis* solver on SciNet's Niagara Compute Cluster. Each node on Niagara cluster has 40 Intel "Skylake" cores at 2.4 GHz and 88 GiB / 202 GB RAM per node.
+
+The scaling test was performed on an eccentric stenosis problem at Reynolds number of 1500, typical of those observed in the aorta. The geometry and the mesh information is shown in the Figure
+![Alt text](/Figures/OasisScaling_Figure1.png "Scaling of Oasis")
+
+
+
+The problem  on typical Stenotic Flow problem at Reynolds number of 1500, typical of the Aorta. 
+
+
+
+
+
 ## SciNet Computing Cluster (Niagara) Script to Run Oasis
 This script can be used to load specific modules and run Oasis on Niagara. Please ensure to modify this script as necessary. Specifically, change the following parameters in the script.
 
