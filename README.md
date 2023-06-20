@@ -17,9 +17,9 @@ To get help for any script, please type:
 foo@bar:~$ python [ScriptName.py] -h
 ```
 ## Table of Contents
-[Scaling of Oasis on Niagara](#oasis_scaling)
-[Niagara Script for Oasis](#niagara_script)
-[Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
+1. [Scaling of Oasis on Niagara](#oasis_scaling)
+2. [Niagara Script for Oasis](#niagara_script)
+3. [Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
 
 
 %---------------------------------------------------------------------
