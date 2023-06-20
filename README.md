@@ -1,3 +1,11 @@
+## Table of Contents
+0. [Introduction to Oasis Tools](#introduction)
+1. [Scaling of Oasis on Niagara](#oasis_scaling)
+2. [Niagara Script for Oasis](#niagara_script)
+3. [Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
+4. [Convert Simvascular Velocity to Oasis Velocity](#convert_simvascular_velocity_to_oasis_velocity)
+
+<a name="introduction"/>
 # OasisTools
 The scripts in this repository provide useful tools to facilitate CFD simulations using the Oasis solver (https://github.com/mikaem/Oasis). You will need the following libraries to use these tools:
 1. vtk
@@ -15,12 +23,11 @@ foo@bar:~$ conda install -c conda-forge fenics
 To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
-```
-## Table of Contents
-1. [Scaling of Oasis on Niagara](#oasis_scaling)
-2. [Niagara Script for Oasis](#niagara_script)
-3. [Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
-4. [Convert Simvascular Velocity to Oasis Velocity](#convert_simvascular_velocity_to_oasis_velocity)
+
+
+
+
+
 
 <a name="oasis_scaling"/>
 
