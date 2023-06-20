@@ -16,6 +16,10 @@ To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
 ```
+## Table of Contents
+[Scaling of Oasis on Niagara](#oasis_scaling)
+
+<a name="oasis_scaling"/>
 ## Scaling of Oasis CFD Solver on Niagara Computing Cluster
 ### Introduction
 *Oasis* is a high-performance CFD solver that has shown accuracy on par with state-of-the-art DNS solvers (e.g., NEK5000). *Oasis* is a minimally-dissipative and energy-preserving solver, ideal for high-resolutions simulations of transitional or turbulent blood flows in the cardiovascular system.
