@@ -24,7 +24,7 @@ Below, we have demonstrated the scaling of *Oasis* solver on SciNet's Niagara Co
 ### Test Problem
 The scaling test was performed on an eccentric stenosis problem at Reynolds number of 1500, typical of those observed in the aorta. The geometry and the mesh information is shown in the Figure
 ![My Image](./Figures/OasisScaling_Figure1.png "Scaling of Oasis")
-*image caption*
+*Figure1: Cross-sectional view of the tetrahedral mesh used in the study. **a)** Schematic of the stenosis model with the region of local refinement, 6D ≤ x ≤ 14D, marked with dashed line. I and II correspond to cut locations. **b)** and **c)** Cross-sectional cut of the mesh outside (i.e. I) and within (i.e. II) the region of local refinement, respectively. The inset shows boundary layer elements close to the wall. **d)** Plot of boundary layer resolution for cross-sectional cuts I (dashed line) and II (solid line).*
 
 
 
