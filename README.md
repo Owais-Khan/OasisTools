@@ -24,6 +24,7 @@ Below, we have demonstrated the scaling of *Oasis* solver on SciNet's Niagara Co
 ### Test Problem
 The scaling test was performed on an eccentric stenosis problem at Reynolds number of 1500, typical of those observed in the aorta. The geometry and the mesh information is shown in the Figure
 ![My Image](./Figures/OasisScaling_Figure1.png "Scaling of Oasis")
+*image caption*
 
 
 
