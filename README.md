@@ -20,9 +20,8 @@ foo@bar:~$ python [ScriptName.py] -h
 1. [Scaling of Oasis on Niagara](#oasis_scaling)
 2. [Niagara Script for Oasis](#niagara_script)
 3. [Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
+4. [Convert Simvascular Velocity to Oasis Velocity](#convert_simvascular_velocity_to_oasis_velocity)
 
-
-%---------------------------------------------------------------------
 <a name="oasis_scaling"/>
 
 ## Scaling of Oasis CFD Solver on Niagara Computing Cluster
@@ -57,7 +56,6 @@ This script can be used to load specific modules and run Oasis on Niagara. Pleas
 ```mesh_path```: Path to where you have stored the mesh.
 
 
-%-----------------------------------------------------
 <a name="convert_simvascular_to_oasis_mesh"/>
 
 ## Convert SimVascular Mesh to Oasis readable Mesh
@@ -77,6 +75,7 @@ The script will output two files in the same folder as the /path/to/ (i.e. where
 
 **Note**: The VTU file is converted in .xml.gz file using the vmtkMeshWriter script. However, the conda installing of vmtk will give you an error. You will need to update the vmtkMeshWriter script manually to corrct this. Please open the vmtkmeshwriter.py file, go to line 264, and change ```file = open(self.OutputFileName,'r')``` to ```file = open(self.OutputFileName,'rb')```. If you install vmtk using conda, the script will be located at: ```/Users/[USERNAME]/miniconda3/envs/vmtk/lib/python3.6/site-packages/vmtk/vmtkmeshwriter.py```
 
+<a name="convert_simvascular_velocity_to_oasis_velocity"/>
 ## Convert SimVascular velocity to Oasis Readable velocity
 The following script can be used to convert VTK format velocity field from SimVascular to .h5 format velocity field for Oasis. Converting SimVascular velocity field in .h5 format allows us to utilize FEniCS library for computing post-processing quantities (available in VaMPy see https://vampy.readthedocs.io/en/latest/).
 
