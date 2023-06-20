@@ -18,18 +18,18 @@ foo@bar:~$ python [ScriptName.py] -h
 ```
 ## Scaling of Oasis CFD Solver on Niagara Computing Cluster
 ### Introduction
-*Oasis* is a high-performance CFD solver that has shown accuracy on par with state-of-the-art DNS solvers (e.g., NEK5000). The solver is minimally dissipative and energy preserving, ideal for high-resolutions simulations of transitional or turbulent blood flows in the cardiovascular system.
+*Oasis* is a high-performance CFD solver that has shown accuracy on par with state-of-the-art DNS solvers (e.g., NEK5000). *Oasis* is a minimally-dissipative and energy-preserving solver, ideal for high-resolutions simulations of transitional or turbulent blood flows in the cardiovascular system.
 
 ### Cluster Specification
 Below, we have demonstrated the scaling of *Oasis* solver on SciNet's Niagara Compute Cluster. Each node on Niagara cluster has 40 Intel "Skylake" cores at 2.4 GHz and 88 GiB / 202 GB RAM per node.
 
 ### Test Problem
-The scaling test was performed on an eccentric stenosis problem at Reynolds number of 1500, typical of those observed in the aorta (see [Khan et al., FTaC, 2018](https://link.springer.com/article/10.1007/s10494-018-9905-7)). The geometry and the mesh information is shown in the Figure 1. The model has a 5% eccentricity at the throat of the stenosis neck that acts as a geometric perturbation to destabalize the flow towards turbulence. The CFD simulations were run with 2.6 million tetrahedral element, with P2-P1 polynomial functions for velocity and pressure, which resulted in an effective mesh size of ~21 million elements. The Reynolds number was 1500 with a temporal resolution of 0.0005 seconds.  
+The scaling test was performed on an eccentric stenosis problem at Reynolds number of 1500, typical of those observed in the aorta (see [Khan et al., FTaC, 2018](https://link.springer.com/article/10.1007/s10494-018-9905-7)). The geometry and the mesh information is shown in the Figure 1. The model has a 5% eccentricity at the throat of the stenosis that acts as a geometric perturbation to destabalize the flow towards turbulence. The CFD simulations were run with 2.6 million tetrahedral elements, with P2-P1 polynomial functions for velocity and pressure, which resulted in an effective mesh size of ~21 million elements. The Reynolds number was 1500 with a temporal resolution of 0.0005 seconds.  
 ![My Image](./Figures/OasisScaling_Mesh_Figure1.png)
 *Figure1: Cross-sectional view of the tetrahedral mesh used in the study. **a)** Schematic of the stenosis model with the region of local refinement, 6D ≤ x ≤ 14D, marked with dashed line. I and II correspond to cut locations. **b)** and **c)** Cross-sectional cut of the mesh outside (i.e. I) and within (i.e. II) the region of local refinement, respectively. The inset shows boundary layer elements close to the wall. **d)** Plot of boundary layer resolution for cross-sectional cuts I (dashed line) and II (solid line).*
 
 ### Scaling Results
-Simulations were run at 40, 80, 120, 160, 200 cores, corresponding to 1, 2, 3, 4 and 5 nodes on Niagara computing cluster. % Efficiency was computed relative to 40 core. As seen in Figure 2, Oasis scaling drops to 70% at 2 nodes and then lingers around 60% at >= 3 nodes. Hence, the optimal performance can be obtained at 1 Node (40 cores). However, if further speed gain is required, 2 Nodes can also be used with modest drop in efficiency. 
+Simulations were run at 40, 80, 120, 160, 200 cores, corresponding to 1, 2, 3, 4 and 5 nodes on the Niagara computing cluster. % Efficiency was computed relative to 40 core. As seen in Figure 2, Oasis scaling drops to 70% at 2 nodes (i.e., 80 cores) and then lingers around 60% at >= 3-5 nodes. Hence, the optimal performance can be obtained at 1 Node (40 cores). However, if further speed gain is required, 2 Nodes may provide a balance between speed and efficiency.  
 ![My Image](./Figures/OasisScaling_Scaling_Figure2.png)
 *Figure 2: Scaling test of Oasis on Niagara Compute Cluster with a stenotic mesh of 2.6 million elements run with P2-P1 polynomial function*
 
