@@ -50,7 +50,7 @@ Simulations were run at 40, 80, 120, 160, 200 cores, corresponding to 1, 2, 3, 4
 %-----------------------------------------------------------
 <a name="niagara_script"/>
 ## SciNet Computing Cluster (Niagara) Script to Run Oasis
-This script can be used to load specific modules and run Oasis on Niagara. Please ensure to modify this script as necessary. Specifically, change the following parameters in the script.
+```Niagara_Oasis.sh``` can be used to load specific modules and run Oasis on Niagara. Please ensure to modify this script as necessary. Specifically, change the following parameters in the script.
 
 ```#SBATCH --time=01:00:00```: The maximum allocated time to requested. Maximum allowed is 1 day.
 
