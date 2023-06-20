@@ -1,13 +1,11 @@
 ## Table of Contents
-0. [Introduction to Oasis Tools](#introduction)
+0. [Introduction to Oasis Tools](#introduction_)
 1. [Scaling of Oasis on Niagara](#oasis_scaling)
 2. [Niagara Script for Oasis](#niagara_script)
 3. [Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
 4. [Convert Simvascular Velocity to Oasis Velocity](#convert_simvascular_velocity_to_oasis_velocity)
 
-<a name="introduction"/>
-
-# OasisTools
+<a name="introduction_"/>
 The scripts in this repository provide useful tools to facilitate CFD simulations using the Oasis solver (https://github.com/mikaem/Oasis). You will need the following libraries to use these tools:
 1. vtk
 2. Fenics
@@ -31,7 +29,6 @@ foo@bar:~$ python [ScriptName.py] -h
 <a name="oasis_scaling"/>
 
 ## Scaling of Oasis CFD Solver on Niagara Computing Cluster
-### Introduction
 *Oasis* is a high-performance CFD solver that has shown accuracy on par with state-of-the-art DNS solvers (e.g., NEK5000). *Oasis* is a minimally-dissipative and energy-preserving solver, ideal for high-resolutions simulations of transitional or turbulent blood flows in the cardiovascular system.
 
 ### Cluster Specification
