@@ -16,6 +16,11 @@ To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
 ```
+## SciNet Computing Cluster (Niagara) Script to Run Oasis
+This script can be used to load specific modules and run Oasis on Niagara. Please ensure to modify this script as necessary. Specifically, change the following parameters in the script.
+```#SBATCH --time=01:00:00```: The maximum allocated time to requested. Maximum allowed is 1 day.
+
+
 ## Convert SimVascular Mesh to Oasis readable Mesh
 SimVascular software (see simvascular.github.io) can be used to segment and generate volumetric meshes. SimVascular produces a folder called "mesh-complete", which contains the volumetric, wall and cap meshes. Prior to generating the mesh in SimVascular, please ensure that the inflow cap is labelled as "inflow". 
 
