@@ -23,9 +23,7 @@ foo@bar:~$ conda install -c conda-forge fenics
 To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
-
-
-
+```
 
 
 
