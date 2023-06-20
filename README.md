@@ -18,7 +18,11 @@ foo@bar:~$ python [ScriptName.py] -h
 ```
 ## Table of Contents
 [Scaling of Oasis on Niagara](#oasis_scaling)
+[Niagara Script for Oasis](#niagara_script)
+[Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
 
+
+%---------------------------------------------------------------------
 <a name="oasis_scaling"/>
 
 ## Scaling of Oasis CFD Solver on Niagara Computing Cluster
@@ -39,7 +43,8 @@ Simulations were run at 40, 80, 120, 160, 200 cores, corresponding to 1, 2, 3, 4
 *Figure 2: Scaling test of Oasis on Niagara Compute Cluster with a stenotic mesh of 2.6 million elements run with P2-P1 polynomial function*
 
 
-
+%-----------------------------------------------------------
+<a name="niagara_script"/>
 ## SciNet Computing Cluster (Niagara) Script to Run Oasis
 This script can be used to load specific modules and run Oasis on Niagara. Please ensure to modify this script as necessary. Specifically, change the following parameters in the script.
 
@@ -50,6 +55,10 @@ This script can be used to load specific modules and run Oasis on Niagara. Pleas
 ```#SBATCH --mail-user=youremailaddress@torontomu.ca```: You can provide an email address to be notified when your SciNet job starts or finishes.
 
 ```mesh_path```: Path to where you have stored the mesh.
+
+
+%-----------------------------------------------------
+<a name="convert_simvascular_to_oasis_mesh"/>
 
 ## Convert SimVascular Mesh to Oasis readable Mesh
 SimVascular software (see simvascular.github.io) can be used to segment and generate volumetric meshes. SimVascular produces a folder called "mesh-complete", which contains the volumetric, wall and cap meshes. Prior to generating the mesh in SimVascular, please ensure that the inflow cap is labelled as "inflow". 
