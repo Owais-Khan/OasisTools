@@ -10,7 +10,7 @@ from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import numpy as np
 import vtk
 import argparse
-from Utilities import *
+from utilities import *
 from vmtk import vtkvmtk, vmtkscripts
 
 class OasisMeshWriterForSimVascular():
