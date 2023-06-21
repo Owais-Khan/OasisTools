@@ -1,79 +1,169 @@
-import sys
-import os
-from glob import glob
-from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
-from compute_flow_and_simulation_metrics import get_dataset_names
-import numpy as np
-import vtk
-import argparse
-from utilities import *
-from dolfin import *
-from ufl.tensors import ListTensor
+#This code is written by Owais Khan on June 20th, 2023
+#This code takes Oasis solution and inject contrast bolus
 
+#from compute_flow_and_simulation_metrics import get_dataset_names
+import json
+from time import time
+import argparse
+from dolfin import *
+import numpy as np
 class OasisAdvectionDiffusion():
 	def __init__(self,Args):
 		#Get all of the argumenets
 		self.Args=Args
-		
+		#Number of Time Steps saved from the CFD Simulation
+		self.Args.NumberOfTimesteps=((self.Args.EndStep-self.Args.StartStep)/self.Args.Increment)
+		#Number of Time Steps to run Advection Diffusion Equation (5*CFD)
+		self.Args.TotalTimesteps=int(self.Args.NumberOfTimesteps*self.Args.ContrastPeriodFactor)
+		#Temporal Resolution of the CFD simulation
+		self.Args.dt=self.Args.Period/self.Args.NumberOfTimesteps
+		#Period for the Contrast Profile
+		self.Args.PeriodContrast=self.Args.Period*self.Args.ContrastPeriodFactor
+
 		#print the results
 		if MPI.rank(MPI.comm_world) == 0:
-			print ("Mesh File:        %s"%self.Args.MeshFileName)
-			print ("Velocity File     %s"%self.Args.VelocityFileName) #Contains Velocity from Oasis
-			print ("Diffusion Coeff:  %.05f"%self.Args.DiffusionCoefficient)
-			print ("Period:           %.05f"%self.Args.Period)
-			print ("No of Timesteps:  %.05f"%self.Args.NumerOfTimesteps)
-			print ("Velocity Order:   %d"%self.Args.VelocityOrder)
-			print ("Number of Cycles: %d"%self.Args.NumberOfCycles) 
+			print ("-"*75)
+			print ("\n")
+			print ("Mesh File:              %s"%self.Args.MeshFileName)
+			print ("Velocity File           %s"%self.Args.InputFileName)
+			print ("\n")
+			print ("Diffusion Coeff:        %.05f"%self.Args.DiffusionCoefficient)
+			print ("Period:                 %.05f"%self.Args.Period)
+			print ("Contrast Period Factor: %.05f"%self.Args.ContrastPeriodFactor)
+			print ("No of Timesteps:        %.05f"%self.Args.NumberOfTimesteps)
+			print ("Velocity Order:         %d"%self.Args.VelocityOrder)
+			print ("\n")
+			print ("Start TimeStep for CFD:  %s"%self.Args.StartStep)
+			print ("Ending TimeStep for CFD: %s"%self.Args.EndStep)
+			print ("Increment Step:          %s"%self.Args.Increment)
+			
 	def Main(self):
-		#Load the Mehs
-		mesh=Mesh(self.Args.InputFileName)
-
-		#Define the temporal resolution
-		self.Args.dt=self.Args.Period/self.Args.NumberOfTimesteps
-
-		#Get the temporal resolution
+		#--------------------------------------------------------
+		print ("-"*75)
+		#Define all of the input parameters
+		#Mesh
+		print ("--- Loading Mesh File: %s"%self.Args.MeshFileName)
+		self.Mesh=Mesh(self.Args.MeshFileName) #Mesh
+		
+		#Temporal Resolutions
+		print ("--- Creating Temporal Resolution Variable.")
+		self.Args.dt=self.Args.Period/self.Args.NumberOfTimesteps #Temp Res
 		k=Constant(self.Args.dt)
 
 		#Assign a diffusion constant
-		D=Constant(Self.Args.DiffusionCoefficient)		
+		print ("--- Creating Diffusivity Coefficient Variable.")
+		D=Constant(self.Args.DiffusionCoefficient)		
 		
+		#--------------------------------------------------------
+		print ("-"*75)
 		#Create Function Space and Test/Trial Functions
-		VV=VectorFunctionSpace(mesh,"CG",self.Args.VelocityOrder) #Velocity Function Space
-		VC=FunctionSpace(mesh,"CG",2) #Contrast Function Space
-		
+		print ("--- Creating a Vector Function Scape for Velocity.")
+		VV=VectorFunctionSpace(self.Mesh,"CG",self.Args.VelocityOrder) # For velocity
+		print ("--- Creating a Scalar Function Space for Contrast Concentration.")
+		VC=FunctionSpace(self.Mesh,"CG",2) #For Contrast
+		print ("--- Creating FEM Test Function.")
+		v=Function(VC) #Test Function
+	
+		print ("--- Creating Velocity Function.")	
 		u  =Function(VV) #Velocity Function
+		print ("--- Creating Contrast Concentration Function.")
 		c  =Function(VC) #Concentration Function
 		c_n=Function(VC)
+		
+		#---------------------------------------------------------
+		print ("-"*75)
+		#Assing Boundary Conditions
+		print ("--- Creating Boundary Mesh Function.") 
+		#Read the Boundary Mesh
+		Boundary=MeshFunction("size_t", self.Mesh, self.Mesh.geometry().dim()-1, self.Mesh.domains())
+               
+		print ("--- Reading the Mesh Info file for Inlet/Outlet Ids.") 
+                # Read Case Parameters from Simulation File
+		info = self.Args.MeshFileName.split(".xml")[0] + "_info.json"
+		with open(info) as f: info = json.load(f)
+		id_in=[]
+		id_in[:] = info['inlet_id']
+		id_out=[]
+		id_out[:] = info['outlet_ids']
+ 		
+		print ("-"*75)
+		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
+		print ("--- Creating Expression for Contrast Concentration Profile.")
+		ConcentrationEquation=Expression("cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/Td)))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
+		
+		#Assing the inflow boundary for the concentration
+		print ("--- Assigning Wall Boundary Condition.")
+		WallBC=DirichletBC(VC, Constant(0.0), Boundary,0) #Assuming wall=0
+		print ("--- Assigning Dirichlet Boundary Condition. Assume InletId=1")
+		InflowBC=DirichletBC(VC,ConcentrationEquation,Boundary,1) #Assuming inflow=1
+		BC=[Wall,InflowBC]
+		print ("\n")
+
+		#---------------------------------------------------------
+		#Write the Function to minimize
+		print ("--- Creating Variational Equation")
+		F = ((c - c_n) / k)*v*dx + dot(u, grad(c))*v*dx	- D*dot(grad(c), grad(v))*dx 
+		print ("--- Separating LHS and RHS")
+		a1=lhs(F)
+		L1=rhs(F)	
+               
+		#Assemble Matricies
+		A1=assemble(a1)
+ 
+		print ("--- Creating FEM Test Function.")
 		v=Function(VC) #Test Function
 
-		#Write the Function to minimize
-		F = ((c - c_n) / k)*v*dx + dot(u, grad(c))*v*dx	+ D*dot(grad(c), grad(v))*dx 
 
 		#Load the Velocity File Series
-		f = HDF5File(MPI.comm_world, self.Args.VelocityFileName, "r")
-		dataset_names = get_dataset_names(f, start=start)
+		f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
 		
+		#----------------------------------------------------------
+		print ("-"*75)
 		# Time-stepping
-		t = 0
-		for n in range(num_steps):
+		t = 0.0
+		for i in range(self.Args.TotalTimesteps):
 			# Update current time
-			t += dt
-    
+			Progress_=(t/(self.Args.Period*self.Args.ContrastPeriodFactor))*100
+			print ("Current Time is: %.05f. Completed: %s"%(t,Progress_))
+			print ("Reading Velocity: /velocity/vector_%s"%(int(i%(self.Args.NumberOfTimesteps))))
+			t += self.Args.dt
+   
+			#Update the Contrast Inflow 
+			ConcentrationEquation.t=t	
+ 
 			# Read velocity from file
-			timeseries_w.retrieve(w.vector(), t)
+			f_u.read(u,"/velocity/vector_%s"%(int(i%(self.Args.NumberOfTimesteps))))
 
-			# Solve variational problem for time step
-			solve(F == 0, u)
-
-			# Save solution to file (VTK)
-
-    
+			## Solve variational problem for time step
+			b1=Assemble(L1)
+			[bc.apply(A1,b1) for bc in BC]
+			solve(A1,c.vector(),b1,"gmres","default")
+		
 			# Update previous solution
 			u_n.assign(u)
 
-    
-			# Update progress bar
-			progress.update(t / T)
 
+if __name__=="__main__":
+	parser = argparse.ArgumentParser(description="This script will run an advection-diffusion equation on Oasis generated velocity field.")
 
-			
+	parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="The file containing the velocity data generated by oasis.")
+	
+	parser.add_argument('-Period', '--Period', type=float, required=False, default=1.0, dest="Period",help="The duration of one cardiac cycle.")
+	
+	parser.add_argument('-ContrastPeriodFactor', '--ContrastPeriodFactor', type=float, required=False, default=5.0, dest="ContrastPeriodFactor",help="The duration of the contrast bolus injection to peak contrast as a multiple of Period. Default is 5 (i.e., 5*Period)")
+        
+	parser.add_argument('-DiffusionCoefficient', '--DiffusionCoefficient', type=float, required=False, default=0.04, dest="DiffusionCoefficient",help="The diffusivity coefficient. Default is 0.04, which assumes Schmit Number (nu/D) of 1.")
+
+	parser.add_argument('-VelocityOrder', '--VelocityOrder', type=int, required=False, default=2, dest="VelocityOrder",help="The polynomial order for the velocity field.")
+	
+	parser.add_argument('-StartStep', '--StartStep', type=int, required=False, default=0, dest="StartStep",help="The starting timestep from the CFD simulation. Default=20000")
+	
+	parser.add_argument('-EndStep', '--EndStep', type=int, required=False, default=1000, dest="EndStep",help="The ending timestep for CFD simulation.")
+	
+	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=1, dest="Increment",help="The Increment Between Timestep Saving.")
+	
+	parser.add_argument('-MeshFileName', '--MeshFileName', type=str, required=True, dest="MeshFileName",help="The filename that contains the mesh file")
+        
+	args=parser.parse_args()
+	OasisAdvectionDiffusion(args).Main()
+	
