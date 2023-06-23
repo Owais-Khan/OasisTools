@@ -2,8 +2,9 @@
 0. [Introduction to Oasis Tools](#introduction_)
 1. [Scaling of Oasis on Niagara](#oasis_scaling)
 2. [Niagara Script for Oasis](#niagara_script)
-3. [Convert Simvascular Mesh to Oasis](#convert_simvascular_to_oasis_mesh)
+3. [Convert Simvascular Mesh to Oasis Mesh](#convert_simvascular_to_oasis_mesh)
 4. [Convert Simvascular Velocity to Oasis Velocity](#convert_simvascular_velocity_to_oasis_velocity)
+5. [Simulate Advection-Diffusion Equation using Pre-computed Velocity](#simulate_advection_diffusion)
 
 <a name="introduction_"/>
 
@@ -94,4 +95,21 @@ foo@bar:~$ python OasisConvertSimVascularResults.py -InputFolder /path/to/Simvas
 ```
 Optional arguments include:
 * -OutputFolder : Path to the output folder to store the .h5 results (Oasis format).
+
+
+
+<a name="simulate_advection_diffusion"/>
+## Simulate Advection Diffusion Equation using Pre-Computed Velocity
+```OasisAdvectionDiffusion.py``` can be used to simulate contrast dynamics using CFD computed velocity fied from the *Oasis* solver. The script will take the following data as input:
+- Velocity Field (typically stored in "results_artery/mesh-complete/data/1/Solutions/u.h5")
+- Number of Time Steps (e.g., typically 1000).
+- Duration of the Cardiac Cycle (i.e., Period)
+- Duration of the Contrast Cycle (assumed to be 5 * Duration of the Cardiac Cycle)
+
+You can run the script as follows:
+```console
+foo@bar:~$ python OasisAdvectionDiffusion.py -InputFolder /path/to/velocity/data/u.h5  -MeshFileName /path/to/mesh.xml.gz
+```
+
+
 
