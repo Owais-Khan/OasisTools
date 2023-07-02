@@ -64,13 +64,13 @@ class OasisAdvectionDiffusion():
 
 
 		print ("--- Creating FEM Test Function.")
-		v=TestFunction(V) #Test Function
+		v= TestFunction(V) #Test Function
 	
 		print ("--- Creating Velocity Function.")	
-		w  =Function(W) #Velocity Function
+		w  = Function(W) #Velocity Function
 		print ("--- Creating Contrast Concentration Function.")
-		u  =Function(V) #Concentration Function
-		u_n=Function(V)
+		u  = TrialFunction(V) #Concentration Function
+		#u_n=Function(V)
 		
 		#---------------------------------------------------------
 		print ("-"*75)
@@ -78,7 +78,7 @@ class OasisAdvectionDiffusion():
 		print ("--- Creating Boundary Mesh Function.") 
 		#Read the Boundary Mesh
 		Boundary=MeshFunction("size_t", self.Mesh, self.Mesh.geometry().dim()-1, self.Mesh.domains())
-               
+
 		print ("--- Reading the Mesh Info file for Inlet/Outlet Ids.") 
                 # Read Case Parameters from Simulation File
 		info = self.Args.MeshFileName.split(".xml")[0] + "_info.json"
@@ -91,14 +91,15 @@ class OasisAdvectionDiffusion():
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
-		ConcentrationEquation=Expression("cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/Td)))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
+		ConcentrationEquation = Expression("cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/Td)))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
 		
 		#Assing the inflow boundary for the concentration
 		print ("--- Assigning Wall Boundary Condition.")
-		Wall=DirichletBC(V, Constant(0.0), Boundary,0) #Assuming wall=0
+		Wall = DirichletBC(V, Constant(0.0), Boundary,0) #Assuming wall=0
 		print ("--- Assigning Dirichlet Boundary Condition. Assume InletId=1")
-		Inflow=DirichletBC(V,ConcentrationEquation,Boundary,1) #Assuming inflow=1
-		BoundaryConditions=[Wall,Inflow]
+		Inflow = DirichletBC(V,ConcentrationEquation,Boundary,1) #Assuming inflow=1
+		BoundaryConditions = [Wall,Inflow]
+		u_n = interpolate(ConcentrationEquation,V)
 		print ("\n")
 
 		#---------------------------------------------------------
@@ -109,10 +110,10 @@ class OasisAdvectionDiffusion():
 		a1=lhs(F)
 		L1=rhs(F)
 		A1=assemble(a1)
-
+		u = Function(V)
 		#Load the Velocity File Series from CFD simulation
 		f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
-		
+		#f_u.read(w,f"/velocity/vector_{self.Args.NumberOfTimesteps}")
 		#----------------------------------------------------------
 		print ("-"*75)
 		# Time-stepping
@@ -127,13 +128,13 @@ class OasisAdvectionDiffusion():
 			ConcentrationEquation.t=t	
  
 			# Read velocity from file
-			f_u.read(u,"/velocity/vector_%s"%(i%(self.Args.NumberOfTimesteps)))
+			f_u.read(w,f"/velocity/vector_{self.Args.NumberOfTimesteps}")
 
 			# Solve variational problem for time step
 			b1=assemble(L1)
 			[bc.apply(A1,b1) for bc in BoundaryConditions]
-			solve(A1,c.vector(),b1,"gmres","default")
-
+			#solve(a1 == L1, u, BoundaryConditions)#A1,c.vector(),b1,"gmres","default")
+			solve(A1,c.vector(),b1)#,"gmres","default")
 			# Update previous solution
 			u_n.assign(u)
 
