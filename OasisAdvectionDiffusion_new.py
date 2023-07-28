@@ -1,11 +1,16 @@
 #This code is written by Owais Khan on June 20th, 2023
 #This code takes Oasis solution and inject contrast bolus
+#Modified by Anahita Seresti on July, 2023
 
 #from compute_flow_and_simulation_metrics import get_dataset_names
 import json
 from time import time
 import argparse
 from dolfin import *
+import os
+
+os.environ['HDF5_DISABLE_VERSION_CHECK'] = '2'
+parameters["reorder_dofs_serial"]=False
 
 class OasisAdvectionDiffusion():
 	def __init__(self,Args):
@@ -43,41 +48,40 @@ class OasisAdvectionDiffusion():
 		#Define all of the input parameters
 		#Mesh
 		print ("--- Loading Mesh File: %s"%self.Args.MeshFileName)
-		self.Mesh=Mesh(self.Args.MeshFileName) #Mesh
+		self.Mesh = Mesh(self.Args.MeshFileName) #Mesh
 		
 		#Temporal Resolutions
 		print ("--- Creating Temporal Resolution Variable.")
-		self.Args.dt=self.Args.Period/self.Args.NumberOfTimesteps #Temp Res
-		k=Constant(self.Args.dt)
+		self.Args.dt = self.Args.Period/self.Args.NumberOfTimesteps #Temp Res
+		k = Constant(self.Args.dt)
 
 		#Assign a diffusion constant
 		print ("--- Creating Diffusivity Coefficient Variable.")
-		D=Constant(self.Args.DiffusionCoefficient)		
-		
+		D = Constant(self.Args.DiffusionCoefficient)		
+		source = Constant(0.0)#Expression('pow(x[0]-0.1,2)+pow(x[1]-0.1,2)<0.05*0.05 ? 0.1 : 0', degree=1) 
 		#--------------------------------------------------------
 		print ("-"*75)
 		#Create Function Space and Test/Trial Functions
 		print ("--- Creating a Vector Function Scape for Velocity.")
-		W=VectorFunctionSpace(self.Mesh,"CG",self.Args.VelocityOrder) # For velocity
+		W = VectorFunctionSpace(self.Mesh,"CG", self.Args.VelocityOrder,3) # For velocity
 		print ("--- Creating a Scalar Function Space for Contrast Concentration.")
-		V=FunctionSpace(self.Mesh,"CG",2) #For Contrast
+		V = FunctionSpace(self.Mesh,"CG",2) #For Contrast
 
 
 		print ("--- Creating FEM Test Function.")
-		v= TestFunction(V) #Test Function
-	
+		v = TestFunction(V) #Test Function
 		print ("--- Creating Velocity Function.")	
 		w  = Function(W) #Velocity Function
 		print ("--- Creating Contrast Concentration Function.")
 		u  = TrialFunction(V) #Concentration Function
-		u_n=Function(V)
+		u_n = Function(V)
 		
 		#---------------------------------------------------------
 		print ("-"*75)
 		#Assing Boundary Conditions
 		print ("--- Creating Boundary Mesh Function.") 
 		#Read the Boundary Mesh
-		Boundary=MeshFunction("size_t", self.Mesh, self.Mesh.geometry().dim()-1, self.Mesh.domains())
+		Boundary = MeshFunction("size_t", self.Mesh, self.Mesh.geometry().dim()-1, self.Mesh.domains())
 
 		print ("--- Reading the Mesh Info file for Inlet/Outlet Ids.") 
                 # Read Case Parameters from Simulation File
@@ -91,53 +95,65 @@ class OasisAdvectionDiffusion():
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
-		ConcentrationEquation = Expression("cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/Td)))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
+		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(2*Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
 		
 		#Assing the inflow boundary for the concentration
 		print ("--- Assigning Wall Boundary Condition.")
 		Wall = DirichletBC(V, Constant(0.0), Boundary,0) #Assuming wall=0
 		print ("--- Assigning Dirichlet Boundary Condition. Assume InletId=1")
 		Inflow = DirichletBC(V,ConcentrationEquation,Boundary,1) #Assuming inflow=1
-		BoundaryConditions = [Wall,Inflow]
-		u_n = interpolate(ConcentrationEquation,V)
+		BoundaryConditions = [Inflow]
+		#u_n = interpolate(ConcentrationEquation,V)
 		print ("\n")
 
 		#---------------------------------------------------------
 		#Write the Function to minimize
 		print ("--- Creating Variational Equation")
-		F = ((u - u_n) / k)*v*dx + dot(w, grad(u))*v*dx	- D*dot(grad(u), grad(v))*dx 
+		F = ((u - u_n) / k)*v*dx + dot(w, grad(u))*v*dx	+ D*dot(grad(u), grad(v))*dx - source*v*dx
 		print ("--- Separating LHS and RHS")
-		a1=lhs(F)
-		L1=rhs(F)
+		a1 = lhs(F)
+		L1 = rhs(F)
 		#A1=assemble(a1)
 		u = Function(V)
-		#Load the Velocity File Series from CFD simulation
-		f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
-		f_u.read(w,f"/velocity/vector_{self.Args.NumberOfTimesteps}")
+		#f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
+		#f_u.read(w,f"/velocity/vector_{self.Args.NumberOfTimesteps}")
 		#----------------------------------------------------------
+		#OutputFile = File(f"{self.Args.OutputFolder}/Concentration_.pvd")
+		print(f"--- OutputFolder: {self.Args.OutputFolder}")
+
 		print ("-"*75)
 		# Time-stepping
 		t = 0.0
+		counter=0
 		for i in range(self.Args.TotalTimesteps):
 			# Update current time
-			Progress_=(t/(self.Args.Period*self.Args.ContrastPeriodFactor))*100
+			Progress_ = (t/(self.Args.Period*self.Args.ContrastPeriodFactor))*100
 			print ("Current Time is: %.05f. Completed: %s"%(t,Progress_))
 			t += self.Args.dt
    
 			#Update the Contrast Inflow 
-			ConcentrationEquation.t=t	
+			ConcentrationEquation.t = t	
  
-			# Read velocity from file
-			f_u.read(w,f"/velocity/vector_{self.Args.NumberOfTimesteps}")
-
+			#Load the Velocity File Series from CFD simulation
+			f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
+			f_u.read(w,f"/velocity/vector_{i%self.Args.NumberOfTimesteps}")
+			f_u.close()
 			# Solve variational problem for time step
-			b1=assemble(L1)
+			#b1=assemble(L1)
 			#[bc.apply(A1,b1) for bc in BoundaryConditions]
-			solve(a1 == L1, u, BoundaryConditions)#A1,c.vector(),b1,"gmres","default")
+			solve(a1 == L1, u, BoundaryConditions, solver_parameters=dict(linear_solver='gmres',preconditioner='ilu'))#A1,c.vector(),b1,"gmres","default")
 			#solve(A1,c.vector(),b1)#,"gmres","default")
+		
+
+			#Store the solution
+			print ("------ Storing Solution")
+			#OutputFile << (u,i)
+			ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
+			ofile.write(u)
+
 			# Update previous solution
 			u_n.assign(u)
-
+			counter+=1
 
 if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="This script will run an advection-diffusion equation on Oasis generated velocity field.")
@@ -146,11 +162,11 @@ if __name__=="__main__":
 	
 	parser.add_argument('-Period', '--Period', type=float, required=False, default=1.0, dest="Period",help="The duration of one cardiac cycle.")
 	
-	parser.add_argument('-ContrastPeriodFactor', '--ContrastPeriodFactor', type=float, required=False, default=5.0, dest="ContrastPeriodFactor",help="The duration of the contrast bolus injection to peak contrast as a multiple of Period. Default is 5 (i.e., 5*Period)")
+	parser.add_argument('-ContrastPeriodFactor', '--ContrastPeriodFactor', type=float, required=False, default=10.0, dest="ContrastPeriodFactor",help="The duration of the contrast bolus injection to peak contrast as a multiple of Period. Default is 5 (i.e., 5*Period)")
         
 	parser.add_argument('-DiffusionCoefficient', '--DiffusionCoefficient', type=float, required=False, default=0.04, dest="DiffusionCoefficient",help="The diffusivity coefficient. Default is 0.04, which assumes Schmit Number (nu/D) of 1.")
 
-	parser.add_argument('-VelocityOrder', '--VelocityOrder', type=int, required=False, default=1, dest="VelocityOrder",help="The polynomial order for the velocity field.")
+	parser.add_argument('-VelocityOrder', '--VelocityOrder', type=int, required=False, default=2, dest="VelocityOrder",help="The polynomial order for the velocity field.")
 	
 	parser.add_argument('-StartStep', '--StartStep', type=int, required=False, default=0, dest="StartStep",help="The starting timestep from the CFD simulation. Default=20000")
 	
@@ -159,7 +175,10 @@ if __name__=="__main__":
 	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=1, dest="Increment",help="The Increment Between Timestep Saving.")
 	
 	parser.add_argument('-MeshFileName', '--MeshFileName', type=str, required=True, dest="MeshFileName",help="The filename that contains the mesh file")
-        
+
+	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, default='results_AdvectionDiffusion', dest="OutputFolder", help="The output folder to store the results")
+
+ 
 	args=parser.parse_args()
 	OasisAdvectionDiffusion(args).Main()
 	
