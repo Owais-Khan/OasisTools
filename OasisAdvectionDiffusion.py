@@ -164,7 +164,7 @@ if __name__=="__main__":
 	
 	parser.add_argument('-ContrastPeriodFactor', '--ContrastPeriodFactor', type=float, required=False, default=10.0, dest="ContrastPeriodFactor",help="The duration of the contrast bolus injection to peak contrast as a multiple of Period. Default is 5 (i.e., 5*Period)")
         
-	parser.add_argument('-DiffusionCoefficient', '--DiffusionCoefficient', type=float, required=False, default=0.04, dest="DiffusionCoefficient",help="The diffusivity coefficient. Default is 0.04, which assumes Schmit Number (nu/D) of 1.")
+	parser.add_argument('-DiffusionCoefficient', '--DiffusionCoefficient', type=float, required=False, default=1.0, dest="DiffusionCoefficient",help="The diffusivity coefficient. Default is 0.04, which assumes Schmit Number (nu/D) of 1.")
 
 	parser.add_argument('-VelocityOrder', '--VelocityOrder', type=int, required=False, default=2, dest="VelocityOrder",help="The polynomial order for the velocity field.")
 	
