@@ -4,7 +4,7 @@ import numpy as np
 import vtk
 import os
 import sys
-from utilities import ReadVTUFile, vtk_to_numpy, WriteVTUFile
+from utilities import ReadVTUFile, vtk_to_numpy
 from AnalyticalSolution import AnalyticalSolution
 class SimulationVsAnalytical():
 	def __init__(self,args):
@@ -13,7 +13,7 @@ class SimulationVsAnalytical():
 		NSlice = 100
 		Mesh3D = ReadVTUFile(self.Args.InputMeshFile)
 		min_val = Mesh3D.GetBounds()[0]
-		max_val = Mesh3D.GetBounds()[1]
+		max_val = 1.#Mesh3D.GetBounds()[1]
 		interval = (max_val - min_val)/NSlice
 		normal = (1.,0.,0.)
 		plane = vtk.vtkPlane()
@@ -22,7 +22,6 @@ class SimulationVsAnalytical():
 		slicer.SetInputData(Mesh3D)
 		slicer.SetExtractInside(1)
 		slicer.ExtractBoundaryCellsOn()
-		ofile = './val.txt'#f'{self.Args.OutputFolder}/validation.txt'
 		plane.SetOrigin(min_val, 0., 0.)
 		slicer.SetImplicitFunction(plane)
 		slicer.Update()
@@ -35,10 +34,12 @@ class SimulationVsAnalytical():
 		array = slicer.GetOutput().GetPointData().GetArray('f_22')      
 		array = vtk_to_numpy(array)
 		ConstantVal1 = np.average(array)
-		self.Args.ConstantVal1 = ConstantVal1; self.Args.ConstantVal2 = ConstantVal2; self.Args.NofElements = NSlice; self.Args.minBound = min_val; self.Args.maxBound = max_val
+		self.Args.ConstantVal1 = ConstantVal1; self.Args.ConstantVal2 = ConstantVal2; self.Args.NofElements = NSlice; self.Args.minBound = 0.; self.Args.maxBound = 1.#max_val
 		Mesh1D = AnalyticalSolution(self.Args)
 		c = Mesh1D.main()
 		analytical_array = c.vector().get_local()
+		mean_error = 0
+		ofile = './validation.txt'
 		with open(ofile, 'w') as file:
 			file.write('Simulation, Analytical, Error(%) \n')
 			for i in range(NSlice+1):
@@ -48,12 +49,12 @@ class SimulationVsAnalytical():
 				slicer.SetImplicitFunction(plane)
 				slicer.Update()
 				array = slicer.GetOutput().GetPointData().GetArray('f_22')
-				#WriteVTUFile('slicer.vtu', slicer.GetOutput())
 				array = vtk_to_numpy(array)
 				error = abs(analytical_array[i]-np.average(array))/analytical_array[i]*100
+				mean_error += error**2
 				file.write(f'{np.average(array)}, {analytical_array[i]}, {error}\n')
-				#print(np.average(array))
-				#exit(1)
+			file.write(f'Mean Squared Error = {round((mean_error/NSlice)**0.5,3)}%')
+		file.close()
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This script takes a mesh file and outputs the average value of the plane cuts along the Mesh")

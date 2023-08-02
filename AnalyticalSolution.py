@@ -12,10 +12,9 @@ class AnalyticalSolution():
 		c2 = Constant(self.Args.ConstantVal2)
 		V = Constant(self.Args.MeanVelocity)
 		D = Constant(self.Args.DiffusionCoef)
-		e = Constant(exp(self.Args.maxBound*V/D))
+		e = Constant(exp(V/D))
 		U = FunctionSpace(Mesh,"Lagrange",1)
-		c = interpolate(Expression("c1 + (c2-c1)*(exp(v/D*(x[0]-a)/(b-a))-1)/(exp(v/D*(b-a)/(b-a))-1)", c1=c1, c2=c2, v=V, D=D, b=self.Args.maxBound, a=self.Args.minBound, degree=2),U)
-		#(c2-c1)/(e-1)*exp(V/D*x[0])+(c1*e-c2)/(e-1)",c1 = c1, c2 = c2, e = e, V = V, D = D, degree = 2), U)
+		c = interpolate(Expression("(c2-c1)/(e-1)*exp(V/D*x[0])+(c1*e-c2)/(e-1)",c1 = c1, c2 = c2, e = e, V = V, D = D, degree = 2),U)
 		ofile = XDMFFile("./Concentration1D.xdmf")
 		ofile.write(c)
 		return c
