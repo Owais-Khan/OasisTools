@@ -114,4 +114,11 @@ foo@bar:~$ python OasisAdvectionDiffusion.py -InputFolder /path/to/velocity/data
 ```
 
 
+<a name="analytical_solution"/>
 
+## Solving a simple 1D Advection-Diffusion analytically
+**```AnalyticalSolution.py```** can be used to solve the analytical 1D advection-diffusion equation. The script uses FEniCs setup to interpolate the advection-diffusion with 1D mesh. You need to assign the boundary conditions and velocity and diffusion coefficient through the command-line or set-defaults attribute of the argparse parser. The analytical solution is presented in Arzani's work and is valid for the length inbetween [0,1].
+
+
+## Validation of the 3D Advection-Diffusion Simulation
+**```AdvectionDiffusionValidation.py```** is the script which validates the 3D simulation of the Advection-Diffusion against the 1D analytical solution presented in **```AnalyticalSolution.py```** script. The path to a single **```.vtu```** mesh should be given to the script through the command line. The script uses VTK and FEniCs and Numpy packages, so all have to be installed in your environment. This scripts changes the boundary conditions of the analytical solution based on what was presented to it on the 3D mesh and compares the values acquired from both simulational and analytical solutions.
