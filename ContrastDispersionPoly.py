@@ -1,6 +1,5 @@
 import vtk
 import numpy as np
-import os
 import glob
 import argparse
 from sklearn.linear_model import LinearRegression
