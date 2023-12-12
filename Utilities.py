@@ -160,6 +160,11 @@ def GetCentroid(Surface):
 	Centroid.Update()
 	return Centroid.GetCenter()
 
+def GetSurfaceArea(Surface):
+	masser=vtk.vtkMassProperties()
+	masser.SetInputData(Surface)
+	masser.Update()
+	return masser.GetSurfaceArea()
 
 def ExtractSurface(volume):
 	#Get the outer surface of the volume
@@ -306,5 +311,19 @@ def ConvertPointsToLine(PointsArray):
 
         return polyData
 
+def ReadFenicsMesh(FileName):
+	# File paths
+	if FileName.find(".h5")>1:
+		# Get mesh information
+		mesh = Mesh()
+		with HDF5File(MPI.comm_world, FileName, "r") as mesh_file:
+			mesh_file.read(mesh, "mesh", False)
+    
+	elif FileName.find("xml.gz")>1:
+		mesh=Mesh(FileName)
 
+	else:
+		print ("No mesh found in .h5 or .xml.gz format")
+		print ("Exiting...")
+		exit(1)
 
