@@ -82,6 +82,7 @@ The script will output two files in the same folder as the /path/to/ (i.e. where
 **Note**: The VTU file is converted in .xml.gz file using the vmtkMeshWriter script. However, the conda installing of vmtk will give you an error. You will need to update the vmtkMeshWriter script manually to corrct this. Please open the vmtkmeshwriter.py file, go to line 264, and change ```file = open(self.OutputFileName,'r')``` to ```file = open(self.OutputFileName,'rb')```. If you install vmtk using conda, the script will be located at: ```/Users/[USERNAME]/miniconda3/envs/vmtk/lib/python3.6/site-packages/vmtk/vmtkmeshwriter.py```
 
 <a name="convert_simvascular_velocity_to_oasis_velocity"/>
+
 ## Convert SimVascular velocity to Oasis Readable velocity
 The following script can be used to convert VTK format velocity field from SimVascular to .h5 format velocity field for Oasis. Converting SimVascular velocity field in .h5 format allows us to utilize FEniCS library for computing post-processing quantities (available in VaMPy see https://vampy.readthedocs.io/en/latest/).
 
@@ -96,6 +97,9 @@ foo@bar:~$ python OasisConvertSimVascularResults.py -InputFolder /path/to/Simvas
 Optional arguments include:
 * -OutputFolder : Path to the output folder to store the .h5 results (Oasis format).
 
+## Surface Manupilation Tool
+```OasisSurfaceMeshManipulation.py``` can be used to manipulate the volumetric mesh produced by VMTK (or through pipeline mentioned above using SimVascular). There are several useful tricks within this script for post-processing vascular geometries. Note that this is not a stand-alone script but can be used into your own scripts if necessary. Currently, it has the following capabilities. 
+1. Shrink or Dilate the Surface.
 
 
 <a name="simulate_advection_diffusion"/>
