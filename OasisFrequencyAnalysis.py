@@ -88,7 +88,7 @@ class OasisFrequencyAnalysis():
 		SPI=np.zeros(Npts)
 		TKE=np.zeros(Npts)	
 		for i in range(Npts):
-			SPI[i]=sellf.filter_SPI(Velocity_Mag[:,i])
+			SPI[i]=self.filter_SPI(Velocity_Mag[:,i])
 			U_tke_=np.mean(np.power(self.filter_TKE(Velocity_X[:,i],2)))		
 			V_tke_=np.mean(np.power(self.filter_TKE(Velocity_Y[:,i],2)))		
 			W_tke_=np.mean(np.power(self.filter_TKE(Velocity_Z[:,i],2)))		
